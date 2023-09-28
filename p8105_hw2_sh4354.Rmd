@@ -1,0 +1,7 @@
+---
+title: "p8105_hw2_sh4354"
+author: "Selina Hsuan"
+date: "2023-10-04"
+output: github_document
+---
+
