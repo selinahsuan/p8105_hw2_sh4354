@@ -5,3 +5,36 @@ date: "2023-10-04"
 output: github_document
 ---
 
+##PROBLEM 1
+
+Load tidyverse library
+```{r}
+library(tidyverse)
+```
+
+
+Import pols_month
+```{r}
+polsmonth_df = 
+  read_csv("data/pols-month.csv") |> 
+  janitor::clean_names() |> 
+  separate(mon, into = c("year", "month", "day"), sep ="-") |> 
+  mutate(month = month.abb[as.numeric(month)])
+```
+
+
+##PROBLEM 2
+
+Read and clean Mr. Trash Wheel Sheet
+```{r}
+mrtrash_df =
+  readxl::read_excel("data/202207 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N549") |> 
+  janitor::clean_names() |> 
+  mutate(
+    homes_powered = (weight_tons*500)/30
+)
+```
+
+
+
+
