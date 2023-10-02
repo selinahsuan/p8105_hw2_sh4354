@@ -131,3 +131,10 @@ mci_df =
 ```
 
 The baseline and amyloid datasets were combined using inner_join so that only participants who appeared in both datasets were retained. The resulting MCI dataset contains `r nrow(mci_df)` observations, which is less than either of the original datasets since observations that only appear in one dataset are not included. There are `r ncol(mci_df)` variables, which is more than either of the original datasets since variables in both datasets are included. 
+
+
+save combined dataset as csv
+```{r}
+write.csv(mci_df, file = "results/mci_df.csv")
+```
+
