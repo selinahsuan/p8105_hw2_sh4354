@@ -37,4 +37,36 @@ mrtrash_df =
 
 
 
+Read and clean Professor Trash Wheel and Gwynnda Sheets
+```{r}
+proftrash_df =
+  readxl::read_excel("data/202207 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel", range = "A2:M96") |> 
+  janitor::clean_names() |> 
+  mutate(
+    homes_powered = (weight_tons*500)/30
+)
+  
+
+gwynnda_df =
+  readxl::read_excel("data/202207 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel", range = "A2:K108") |> 
+  janitor::clean_names() |> 
+  mutate(
+    homes_powered = (weight_tons*500)/30
+)
+```
+
+Combine datasets
+
+```{r}
+mrtrash_df$year = as.numeric(mrtrash_df$year)
+
+trash_df = 
+  bind_rows (mrtrash_df, proftrash_df, gwynnda_df) |> 
+  janitor::clean_names()
+```
+
+*There are 747 observations and 15 variables in the resulting dataset. 
+
+
+
 
