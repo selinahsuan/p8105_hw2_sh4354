@@ -5,6 +5,7 @@ date: "2023-10-04"
 output: github_document
 ---
 
+
 # PROBLEM 1
 
 Load tidyverse library
@@ -13,14 +14,59 @@ library(tidyverse)
 ```
 
 
-Import pols_month
+Import and clean pols
 ```{r}
-polsmonth_df = 
+month_df = 
+  tibble(
+    month_num = 1:12,
+    month_abb = month.abb,
+    month = month.name
+  )
+
+pols = 
   read_csv("data/pols-month.csv") |> 
   janitor::clean_names() |> 
-  separate(mon, into = c("year", "month", "day"), sep ="-") |> 
-  mutate(month = month.abb[as.numeric(month)])
+  separate(mon, into = c("year", "month_num", "day"), convert = TRUE) |>
+  mutate(
+    president = recode(prez_gop, "0" = "dem", "1" = "gop", "2" = "gop")) |>
+  left_join(x = _, y = month_df) |> 
+  select(year, month, everything(), -day, -starts_with("prez")) 
 ```
+
+
+Import and clean snp
+```{r}
+snp = 
+  read_csv("data/snp.csv") |>
+  separate(date, into = c("month", "day", "year"), convert = TRUE) |>
+  arrange(year, month) |>
+  mutate(month = month.name[month]) |>
+  select(year, month, close) 
+```
+
+
+Import and clean unemployment
+```{r}
+unemployment = 
+  read_csv("./data/unemployment.csv") |>
+  rename(year = Year) |>
+  pivot_longer(
+    Jan:Dec, 
+    names_to = "month_abb",
+    values_to = "unemployment"
+  ) |> 
+  left_join(x = _, y = month_df) |> 
+  select(year, month, unemployment)
+```
+
+
+Merge all 3 datasets
+```{r}
+data_538 = 
+  left_join(pols, snp) |>
+  left_join(x = _, y = unemployment)
+```
+
 
 
 # PROBLEM 2
@@ -71,7 +117,7 @@ trash_df =
 ```
 
 
-The `mrtrash_df`, `proftrash_df`, and `gwynnda_df` datasets were imported using `readxl::read_excel` and correspond to three different sheets on an Excel document. Each dataset was cleaned using `janitor::cleannames`, and the `mutate` function was used to calculate the number of homes powered for each observation. The datasets were merged using the `bind_rows` function because almost all of the variables were the same in each dataset. By using the `bind_rows` function, we are able to see each observation for each dataset, and a new column `trash_wheel` indicates which dataset/trash wheel the observation comes from. There are `r nrow(trash_df)` observations and `r ncol(trash_df)` variables in the combined dataset. The variables are `r colnames(trash_df)`, and they provide information such as the date, amount of trash, and type of trash collected. The total weight of trash collected by Mr. Trash Wheel is `r sum(mrtrash_df$weight_tons)`. The total number of cigarette butts collected by Gwynnda in July of 2021 is `r filter(gwynnda_df, month == "July", year == 2021) |> pull(cigarette_butts) |> sum()`. 
+The `mrtrash_df`, `proftrash_df`, and `gwynnda_df` datasets were imported using `readxl::read_excel` and correspond to three different sheets on an Excel document. Each dataset was cleaned using `janitor::cleannames`, and the `separate` and `mutate` functions were used to tidy the data, including calculating the number of homes powered for each observation. The datasets were merged using the `bind_rows` function because almost all of the variables were the same in each dataset. By using the `bind_rows` function, we are able to see each observation for each dataset, and a new column `trash_wheel` indicates which dataset/trash wheel the observation comes from. There are `r nrow(trash_df)` observations and `r ncol(trash_df)` variables in the combined dataset. The variables are `r colnames(trash_df)`, and they provide information such as the date, amount of trash, and type of trash collected. The total weight of trash collected by Mr. Trash Wheel is `r sum(mrtrash_df$weight_tons)` tons. The total number of cigarette butts collected by Gwynnda in July of 2021 is `r filter(gwynnda_df, month == 7, year == 2021) |> pull(cigarette_butts) |> sum()`. 
 
 
 # PROBLEM 3
@@ -95,18 +141,10 @@ baseline_df =
 Convert current_age to numeric values
 ```{r}
 baseline_df$current_age = as.numeric(baseline_df$current_age)
-
-```
-
-Find proportion of females who are carriers
-```{r}
-proportion =
-  filter(baseline_df, sex == "female", apoe4 == "carrier") |> 
-  nrow() / sum(baseline_df$sex == "female")
 ```
 
 
-The MCI baseline dataset was imported using read_csv. Since the first row of the dataset consisted of the column names, janitor::row_to_names was used to make row 1 values the column names. The column names were converted to the proper format using janitor::cleannames. Next, to convert the variables sex and apoe4 to character values instead of numbers, the mutate function and ifelse statement was used. Finally, to remove participants who do not meet the stated criteria of developing MCI from baseline, non-values in the age_at_onset column were removed using the filter function. The `r ncol(baseline_df)` variables in the dataset are `r colnames(baseline_df)`. Out of the `r nrow(read_csv("data/MCI_baseline.csv"))-1` participants who were recruited, a total of `r nrow(baseline_df)` participants developed MCI. Out of the participants who met the study criteria, the average baseline age was `r mean(baseline_df$current_age)`, and the proportion of women in the study who are APOE4 carriers is `r proportion`. 
+The MCI baseline dataset was imported using read_csv. Since the first row of the dataset consisted of the column names, janitor::row_to_names was used to make row 1 values the column names. The column names were converted to the proper format using janitor::cleannames. Next, to convert the variables sex and apoe4 to character values instead of numbers, the mutate function and ifelse statement was used. Finally, to remove participants who do not meet the stated criteria of developing MCI from baseline, non-values in the age_at_onset column were removed using the filter function. The `r ncol(baseline_df)` variables in the dataset are `r colnames(baseline_df)`. Out of the `r nrow(read_csv("data/MCI_baseline.csv"))-1` participants who were recruited, a total of `r nrow(baseline_df)` participants developed MCI. Out of the participants who met the study criteria, the average baseline age was `r mean(baseline_df$current_age)`, and the proportion of women in the study who are APOE4 carriers is `r (sum(baseline_df$sex == "female" & baseline_df$apoe4 == "carrier", na.rm = TRUE))/ (sum(baseline_df$sex == "female", na.rm = TRUE)) * 100`%.
 
 
 
