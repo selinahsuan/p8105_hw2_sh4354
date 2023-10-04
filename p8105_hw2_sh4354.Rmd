@@ -6,7 +6,7 @@ output: github_document
 ---
 
 
-# PROBLEM 1
+## PROBLEM 1
 
 Load tidyverse library
 ```{r}
@@ -69,7 +69,7 @@ data_538 =
 
 
 
-# PROBLEM 2
+## PROBLEM 2
 
 Import and clean Mr. Trash Wheel Sheet
 ```{r}
@@ -117,10 +117,12 @@ trash_df =
 ```
 
 
-The `mrtrash_df`, `proftrash_df`, and `gwynnda_df` datasets were imported using `readxl::read_excel` and correspond to three different sheets on an Excel document. Each dataset was cleaned using `janitor::cleannames`, and the `separate` and `mutate` functions were used to tidy the data, including calculating the number of homes powered for each observation. The datasets were merged using the `bind_rows` function because almost all of the variables were the same in each dataset. By using the `bind_rows` function, we are able to see each observation for each dataset, and a new column `trash_wheel` indicates which dataset/trash wheel the observation comes from. There are `r nrow(trash_df)` observations and `r ncol(trash_df)` variables in the combined dataset. The variables are `r colnames(trash_df)`, and they provide information such as the date, amount of trash, and type of trash collected. The total weight of trash collected by Mr. Trash Wheel is `r sum(mrtrash_df$weight_tons)` tons. The total number of cigarette butts collected by Gwynnda in July of 2021 is `r filter(gwynnda_df, month == 7, year == 2021) |> pull(cigarette_butts) |> sum()`. 
+The `mrtrash_df`, `proftrash_df`, and `gwynnda_df` datasets were imported using `readxl::read_excel` and correspond to three different sheets on an Excel document. Each dataset was cleaned and tidied using the `janitor::cleannames`, `separate`, and `mutate` functions, which included calculating the number of homes powered for each observation. The datasets were merged using the `bind_rows` function because almost all of the variables were the same in each dataset. 
+
+By using the `bind_rows` function, we are able to see each observation for each dataset, and a new column `trash_wheel` indicates which dataset/trash wheel the observation comes from. There are `r nrow(trash_df)` observations and `r ncol(trash_df)` variables in the combined dataset. The variables are `r colnames(trash_df)`, and they provide information such as the date, amount of trash, and type of trash collected. The total weight of trash collected by Mr. Trash Wheel is `r sum(mrtrash_df$weight_tons)` tons. The total number of cigarette butts collected by Gwynnda in July of 2021 is `r filter(gwynnda_df, month == 7, year == 2021) |> pull(cigarette_butts) |> sum()`. 
 
 
-# PROBLEM 3
+## PROBLEM 3
 
 Import, clean, and tidy baseline demographics dataset
 ```{r}
@@ -133,12 +135,13 @@ baseline_df =
     apoe4 = ifelse(apoe4 == "1", "carrier", "non-carrier"),
     current_age = as.numeric(current_age)
     ) |> 
-  filter(age_at_onset != ".") |> 
-  rename(study_id = id) 
+  filter(age_at_onset != ".") 
 ```
 
 
-The MCI baseline dataset was imported using read_csv. Since the first row of the dataset consisted of the column names, janitor::row_to_names was used to make row 1 values the column names. The column names were converted to the proper format using janitor::cleannames. Next, to convert the variables sex and apoe4 to character values instead of numbers, the mutate function and ifelse statement was used. Finally, to remove participants who do not meet the stated criteria of developing MCI from baseline, non-values in the age_at_onset column were removed using the filter function. The `r ncol(baseline_df)` variables in the dataset are `r colnames(baseline_df)`. Out of the `r nrow(read_csv("data/MCI_baseline.csv"))-1` participants who were recruited, a total of `r nrow(baseline_df)` participants developed MCI. Out of the participants who met the study criteria, the average baseline age was `r mean(baseline_df$current_age)`, and the proportion of women in the study who are APOE4 carriers is `r (sum(baseline_df$sex == "female" & baseline_df$apoe4 == "carrier", na.rm = TRUE))/ (sum(baseline_df$sex == "female", na.rm = TRUE)) * 100`%.
+The MCI baseline dataset was imported using `read_csv`. Since the first row of the dataset consisted of the column names, `janitor::row_to_names` was used to make row 1 values the column names. The column names were converted to the proper format using `janitor::cleannames`. Next, to convert the variables sex and apoe4 to character values instead of numbers, the `mutate` function and `ifelse` statement was used. Finally, to remove participants who do not meet the stated criteria of developing MCI from baseline, non-values in the age_at_onset column were removed using the `filter` function. 
+
+The `r ncol(baseline_df)` variables in the dataset are `r colnames(baseline_df)`, and they describe the characteristics of study participants. Out of the `r nrow(read_csv("data/MCI_baseline.csv"))-1` participants who were recruited, a total of `r nrow(baseline_df)` participants developed MCI. Out of the participants who met the study criteria, the average baseline age was `r mean(baseline_df$current_age)`, and the proportion of women in the study who are APOE4 carriers is `r (sum(baseline_df$sex == "female" & baseline_df$apoe4 == "carrier"))/ (sum(baseline_df$sex == "female")) * 100`%.
 
 
 
@@ -147,22 +150,23 @@ Import, clean, and tidy amyloid dataset
 amyloid_df =
   read_csv("data/mci_amyloid.csv") |> 
   janitor::row_to_names(row_number = 1) |> 
-  janitor::clean_names() 
+  janitor::clean_names() |> 
+  rename(id = study_id) 
 ```
 
-The MCI amyloid dataset was imported using read_csv. Since the first row of the dataset consisted of the column names, janitor::row_to_names was used to make row 1 values the column names. The column names were converted to the proper format using janitor::cleannames. The `r ncol(amyloid_df)` variables in the dataset are `r colnames(amyloid_df)`. 
+The MCI amyloid dataset was imported using `read_csv`. Since the first row of the dataset consisted of the column names, `janitor::row_to_names` was used to make row 1 values the column names. The column names were converted to the proper format using `janitor::cleannames`. The `r ncol(amyloid_df)` variables in the dataset are `r colnames(amyloid_df)`. The observations describe the amyloid β 42/40 ratio for each study participants from baseline to time_8. 
 
-There are `r nrow(amyloid_df)` observations in the dataset, which is more than the `r nrow(read_csv("data/MCI_baseline.csv"))-1` that were in the original baseline demographics dataset. Therefore, after cleaning the baseline demographics dataset, there are some participants who only appear in the amyloid dataset and possibly some participants who only appear in the baseline dataset. 
+There are `r nrow(amyloid_df)` observations in the dataset, which is greater than the `r nrow(read_csv("data/MCI_baseline.csv"))-1` that were in the original baseline demographics dataset. As a result, after cleaning the baseline demographics dataset, there are some participants who only appear in the amyloid dataset and some participants who only appear in the baseline dataset. 
 
 ```{r}
 mci_df = 
-  inner_join(baseline_df, amyloid_df, by = "study_id")
+  inner_join(baseline_df, amyloid_df, by = "id")
 ```
 
-The baseline and amyloid datasets were combined using inner_join so that only participants who appeared in both datasets were retained. The resulting MCI dataset contains `r nrow(mci_df)` observations, which is less than either of the original datasets since observations that only appear in one dataset are not included. There are `r ncol(mci_df)` variables, which is more than either of the original datasets since variables in both datasets are included. 
+The baseline and amyloid datasets were combined using `inner_join` by the variable `id` so that only participants who appeared in both datasets were retained. The resulting MCI dataset contains `r nrow(mci_df)` observations, which is less than either of the original datasets since observations that only appear in one dataset are not included. There are `r ncol(mci_df)` variables, which is greater than either of the original datasets since variables in both datasets are included. 
 
 
-save combined dataset as csv
+Save combined dataset as csv
 ```{r}
 write.csv(mci_df, file = "results/mci_df.csv")
 ```
