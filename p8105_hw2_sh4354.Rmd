@@ -5,7 +5,7 @@ date: "2023-10-04"
 output: github_document
 ---
 
-##PROBLEM 1
+# PROBLEM 1
 
 Load tidyverse library
 ```{r}
@@ -23,15 +23,16 @@ polsmonth_df =
 ```
 
 
-##PROBLEM 2
+# PROBLEM 2
 
 Import and clean Mr. Trash Wheel Sheet
 ```{r}
 mrtrash_df =
-  readxl::read_excel("data/202207 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N549") |> 
+  readxl::read_excel("data/202309 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N549") |> 
   janitor::clean_names() |> 
   mutate(
-    homes_powered = (weight_tons*500)/30
+    homes_powered = (weight_tons*500)/30,
+    trash_wheel = "mister"
 )
 ```
 
@@ -40,18 +41,20 @@ mrtrash_df =
 Import and clean Professor Trash Wheel and Gwynnda Sheets
 ```{r}
 proftrash_df =
-  readxl::read_excel("data/202207 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel", range = "A2:M96") |> 
+  readxl::read_excel("data/202309 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel", range = "A2:M96") |> 
   janitor::clean_names() |> 
   mutate(
-    homes_powered = (weight_tons*500)/30
+    homes_powered = (weight_tons*500)/30,
+    trash_wheel = "professor"
 )
   
 
 gwynnda_df =
-  readxl::read_excel("data/202207 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel", range = "A2:K108") |> 
+  readxl::read_excel("data/202309 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel", range = "A2:K108") |> 
   janitor::clean_names() |> 
   mutate(
-    homes_powered = (weight_tons*500)/30
+    homes_powered = (weight_tons*500)/30,
+    trash_wheel = "gwynnda"
 )
 ```
 
@@ -66,18 +69,10 @@ trash_df =
 ```
 
 
-Find number of cigarette butts collected by Gwynnda in July of 2021
-```{r}
-gwynnda_cig =
-  filter(gwynnda_df, month == "July", year == 2021) |> 
-  summarise(total_cigarette_butts = sum(cigarette_butts))
-```
+The `mrtrash_df`, `proftrash_df`, and `gwynnda_df` datasets were imported using `readxl::read_excel` and correspond to three different sheets on an Excel document. Each dataset was cleaned using `janitor::cleannames`, and the `mutate` function was used to calculate the number of homes powered for each observation. The datasets were merged using the `bind_rows` function because they each contained mostly the same variables. By using the `bind_rows` function, we are able to see the observations for each dumpster more clearly. There are `r nrow(trash_df)` observations and `r ncol(trash_df)` variables in the resulting dataset. The variables are `r colnames(trash_df)`. The total weight of trash collected by Mr. Trash Wheel is `r sum(mrtrash_df$weight_tons)`. The total number of cigarette butts collected by Gwynnda in July of 2021 is `r filter(gwynnda_df, month == "July", year == 2021) |> pull(cigarette_butts) |> sum()`. 
 
 
-The Mr. Trash Wheel, Professor Trash Wheel, and Gwynnda Trash Wheel datasets were imported using readxl::read_excel and correspond to three different sheets on an Excel document. Each dataset was cleaned using janitor::cleannames, and the mutate function was used to calculate the number of homes powered for each observation. The datasets were merged using the bind_rows function they each contained almost the same variables. By using the bind_rows function, we are able to see the observations for each dumpster more clearly. There are `r nrow(trash_df)` observations and `r ncol(trash_df)` variables in the resulting dataset. The variables are `r colnames(trash_df)`. The total weight of trash collected by Mr. Trash Wheel is `r sum(mrtrash_df$weight_tons)`. The total number of cigarette butts collected by Gwynnda in July of 2021 is `r gwynnda_cig`. 
-
-
-##PROBLEM 3
+# PROBLEM 3
 
 Import, clean, and tidy baseline demographics dataset
 ```{r}
